@@ -1,10 +1,22 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+from django.template import Context
+from django.shortcuts import render
+from polls.models import Poll
+from polls.utils import ViewNames
 
 def index(request):
-    return HttpResponse("Hello World, You're at the poll index.")
+	latest_poll_list = Poll.objects.all().order_by('-pub_date')[:5]
+	#context = Context({'latest_poll_list': latest_poll_list})
+	return render(request, ViewNames.polls_index, {'latest_poll_list': latest_poll_list})
+	#return render(request, 'polls/index.html', context)
 
 def detail(request, poll_id):
-    return HttpResponse("You're looking at poll %s." % poll_id)
+	try:
+		poll = Poll.objects.get(pk=poll_id)
+	except Poll.DoesNotExist:
+		raise Http404
+	else:
+		return render(request, ViewNames.polls_detail, {'poll':poll})
 
 def results(request, poll_id):
     return HttpResponse("You're looking at te results of poll %s." %poll_id)
